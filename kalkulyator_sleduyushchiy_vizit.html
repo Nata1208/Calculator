@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f7f1ee">
+<title>Когда пора на следующую процедуру?</title>
+<style>
+:root{--bg:#f7f1ee;--card:#fffdfc;--ink:#403735;--muted:#827572;--rose:#bd8f91;--rose2:#ead5d2;--line:#eadfdb}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(145deg,#fbf7f4,#f1e7e3);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;padding:24px 14px}
+main{max-width:520px;margin:0 auto}
+header{text-align:center;padding:22px 10px 18px}
+.eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--rose);font-weight:700}
+h1{font-family:Georgia,serif;font-weight:500;font-size:clamp(29px,7vw,39px);line-height:1.12;margin:12px 0;color:#4b3c3a}
+header p{font-size:14px;color:var(--muted);line-height:1.6;margin:0 auto;max-width:380px}
+.card{background:var(--card);border:1px solid #f0e5e1;border-radius:24px;padding:22px;box-shadow:0 14px 40px #6b4d4210}
+label{display:block;font-weight:650;font-size:14px;margin:17px 0 8px}
+label:first-child{margin-top:0}
+select,input{width:100%;border:1px solid var(--line);border-radius:13px;background:#fff;padding:14px 13px;font:inherit;font-size:16px;color:var(--ink);outline:none}
+select:focus,input:focus{border-color:var(--rose);box-shadow:0 0 0 3px #bd8f9120}
+.hint{font-size:12px;color:var(--muted);line-height:1.5;margin-top:7px}
+.result{margin-top:18px;padding:19px;border-radius:18px;background:#f8efed;border:1px solid #efdfdc}
+.result small{display:block;color:#876e6b;font-size:12px;letter-spacing:.04em}
+.result strong{display:block;font:500 25px Georgia,serif;margin:7px 0;color:#694e4c}
+.result p{font-size:13px;line-height:1.55;color:#756462;margin:8px 0 0}
+.actions{display:grid;gap:10px;margin-top:15px}
+button{border:0;border-radius:14px;padding:14px 16px;font:650 15px system-ui;cursor:pointer}
+.primary{background:#9f7476;color:white}
+.secondary{background:#f2e7e4;color:#694e4c}
+button:active{transform:scale(.99)}
+.note{font-size:11px;line-height:1.55;color:#938783;text-align:center;margin:17px 6px 0}
+footer{text-align:center;color:#958984;font-size:12px;padding:18px 8px 5px}
+@media(min-width:520px){body{padding-top:36px}.card{padding:28px}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<div class="eyebrow">Маникюр · Педикюр · п. Сапёрное</div>
+<h1>Когда пора на следующую процедуру?</h1>
+<p>Узнайте ориентировочный период следующего визита и спланируйте запись заранее 🤍</p>
+</header>
+<section class="card" aria-label="Калькулятор следующего визита">
+<label for="service">Какая процедура была у вас?</label>
+<select id="service">
+<option value="manicure">Маникюр</option>
+<option value="pedicure">Педикюр</option>
+</select>
+<label for="lastDate">Когда вы были у мастера?</label>
+<input id="lastDate" type="date">
+<div class="hint" id="intervalHint">Для маникюра обычно рекомендуют планировать следующий визит через 3–4 недели.</div>
+<div class="result" aria-live="polite">
+<small>ВАШ ОРИЕНТИР ДЛЯ СЛЕДУЮЩЕГО ВИЗИТА</small>
+<strong id="dateRange">Выберите дату визита</strong>
+<p id="detail">Калькулятор рассчитает примерный период автоматически.</p>
+</div>
+<div class="actions">
+<button class="primary" id="copyBtn" type="button">Скопировать результат</button>
+<button class="secondary" id="shareBtn" type="button">Отправить результат в Telegram</button>
+</div>
+<p class="note">Расчёт ориентировочный. Срок зависит от скорости отрастания, состояния ногтей и стоп, покрытия и индивидуальных особенностей. Если есть дискомфорт или повреждение покрытия, не ждите рассчитанной даты — свяжитесь с мастером.</p>
+</section>
+<footer>Ваш мастер маникюра и педикюра · п. Сапёрное</footer>
+</main>
+<script>
+const service=document.getElementById('service');
+const lastDate=document.getElementById('lastDate');
+const intervalHint=document.getElementById('intervalHint');
+const dateRange=document.getElementById('dateRange');
+const detail=document.getElementById('detail');
+const copyBtn=document.getElementById('copyBtn');
+const shareBtn=document.getElementById('shareBtn');
+let resultText='';
+const fmt=d=>new Intl.DateTimeFormat('ru-RU',{day:'numeric',month:'long'}).format(d);
+function plusDays(date,days){const d=new Date(date);d.setDate(d.getDate()+days);return d}
+function update(){
+ const isMani=service.value==='manicure';
+ const min=isMani?21:28, max=isMani?28:42;
+ intervalHint.textContent=isMani
+ ?'Для маникюра ориентир — через 3–4 недели. Срок может меняться в зависимости от длины и скорости отрастания.'
+ :'Для педикюра ориентир — через 4–6 недель. Учитывайте сезон, состояние стоп и индивидуальные особенности.';
+ if(!lastDate.value){dateRange.textContent='Выберите дату визита';detail.textContent='Калькулятор рассчитает примерный период автоматически.';resultText='';return}
+ const chosen=new Date(lastDate.value+'T12:00:00');
+ const today=new Date();today.setHours(0,0,0,0);
+ if(chosen>today){dateRange.textContent='Проверьте дату';detail.textContent='Укажите дату, которая уже была.';resultText='';return}
+ const start=plusDays(chosen,min),end=plusDays(chosen,max);
+ const diff=Math.ceil((start-today)/86400000);
+ let timing=diff>0?`До начала рекомендуемого периода примерно ${diff} дн.`:today<=end?'Вы уже в ориентировочном периоде для следующего визита.':'Ориентировочный период уже прошёл — можно запланировать визит.';
+ dateRange.textContent=fmt(start)+' — '+fmt(end);
+ detail.textContent=timing+' Лучше выбрать удобное время заранее, чтобы не подстраиваться под оставшиеся свободные окна.';
+ resultText=`Здравствуйте! Подскажите, пожалуйста, запись на ${isMani?'маникюр':'педикюр'}. Последний визит был: ${fmt(chosen)}. Ориентир следующего визита: ${fmt(start)} — ${fmt(end)}.`;
+}
+service.addEventListener('change',update);
+lastDate.addEventListener('change',update);
+copyBtn.addEventListener('click',async()=>{
+ if(!resultText){detail.textContent='Сначала выберите дату последнего визита.';return}
+ try{await navigator.clipboard.writeText(resultText);copyBtn.textContent='Скопировано ✓';setTimeout(()=>copyBtn.textContent='Скопировать результат',1800)}
+ catch(e){const t=document.createElement('textarea');t.value=resultText;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();copyBtn.textContent='Скопировано ✓';setTimeout(()=>copyBtn.textContent='Скопировать результат',1800)}
+});
+shareBtn.addEventListener('click',()=>{
+ if(!resultText){detail.textContent='Сначала выберите дату последнего визита.';return}
+ const url='https://t.me/share/url?url=&text='+encodeURIComponent(resultText);
+ window.open(url,'_blank','noopener');
+});
+update();
+</script>
+</body>
+</html>
